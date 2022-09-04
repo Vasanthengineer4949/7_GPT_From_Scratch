@@ -12,30 +12,23 @@ class DecoderLayer(nn.Module):
         ):
 
         super().__init__()
-
-        " Masked Multi Self Attention."
         self.C = nn.Linear(config.d_model, config.d_model*3)
         self.linear = nn.Linear(config.d_model, config.d_model)
-
-        " Feed Forward Module."
         self.FF = nn.Sequential(
             nn.Linear(config.d_model, config.inner_state),
             nn.GELU(),
             nn.Linear(config.inner_state, config.d_model),
             nn.Dropout(config.p)
         )
-
-        " Two Layer Norms."
+        nn.init.normal_(self.FF[0].weight, 0, 0.02)
+        nn.init.normal_(self.FF[2].weight, 0, 0.02)
         self.LN1 = nn.LayerNorm(config.d_model)
         self.LN2 = nn.LayerNorm(config.d_model)
-
         self.head_dim = config.d_model // config.heads
         self.heads = config.heads
         self.dropout = nn.Dropout(config.p)
 
-        " Weight Initialization N[0, 0.02] "
-        nn.init.normal_(self.FF[0].weight, 0, 0.02)
-        nn.init.normal_(self.FF[2].weight, 0, 0.02)
+        
 
     def forward(self, x: Tensor) -> Tensor:
         batch, window, d = x.shape
